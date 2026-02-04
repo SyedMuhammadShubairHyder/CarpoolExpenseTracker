@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
+            color: white;
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            opacity: 0.3;
+        }
+
+        .expense-item {
+            transition: background-color 0.2s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .expense-item:hover {
+            background-color: #f8f9fa;
+            border-left-color: var(--primary-color);
+        }
+
+        .category-badge {
+            font-size: 0.875rem;
+            padding: 0.375rem 0.75rem;
+            border-radius: 20px;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: #4338ca;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 70, 229, 0.4);
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: 10px;
+            border: 2px solid #e5e7eb;
+            padding: 0.75rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.25);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #6b7280;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: #d1d5db;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg mb-4">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#">
+                <i class="bi bi-wallet2 text-primary"></i> Expense Tracker
+            </a>
+            <span class="navbar-text">
+                <i class="bi bi-calendar3"></i> {{ "now"|date:"F d, Y" }}
+            </span>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <div class="col-md-4 mb-3">
+                <div class="card stat-card">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-white-50 mb-2">Total Expenses</h6>
+                                <h2 class="mb-0 fw-bold">Rs {{ total|default:"0" }}</h2>
+                                <small class="text-white-50">{{ expenses|length }} transaction{% if expenses|length != 1 %}s{% endif %}</small>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="bi bi-cash-stack"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white;">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-white-50 mb-2">🚗 Commute</h6>
+                                <h2 class="mb-0 fw-bold">Rs {{ commute_total|default:"0" }}</h2>
+                                <small class="text-white-50">To/From University</small>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="bi bi-bus-front"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white;">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-white-50 mb-2">🍽️ Lunch</h6>
+                                <h2 class="mb-0 fw-bold">Rs {{ lunch_total|default:"0" }}</h2>
+                                <small class="text-white-50">Food expenses</small>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="bi bi-egg-fried"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Add Expense Form -->
+            <div class="col-lg-4 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">
+                            <i class="bi bi-plus-circle text-primary"></i> Add New Expense
+                        </h5>
+                        <form method="post">
+                            {% csrf_token %}
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold"><i class="bi bi-cash"></i> Amount (Rs)</label>
+                                <input type="number" name="amount" class="form-control" placeholder="Enter amount" required min="1">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold"><i class="bi bi-tag"></i> Category</label>
+                                <select name="category" class="form-select" required>
+                                    <option value="" selected disabled>Select category</option>
+                                    <option value="TO_UNI">Going to University</option>
+                                    <option value="FROM_UNI">Coming from University</option>
+                                    <option value="LUNCH">Lunch</option>
+                                    <option value="OTHER">Other</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold"><i class="bi bi-pencil"></i> Note (Optional)</label>
+                                <textarea name="note" class="form-control" rows="2" placeholder="Add a note..."></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-plus-lg"></i> Add Expense
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expense List -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-list-ul text-primary"></i> Recent Transactions
+                            </h5>
+                            {% if expenses|length > 5 %}
+                            <button class="btn btn-sm btn-outline-primary" id="toggleBtn" onclick="toggleTransactions()">
+                                <i class="bi bi-eye"></i> View All ({{ expenses|length }})
+                            </button>
+                            {% endif %}
+                        </div>
+
+                        {% if expenses %}
+                        <div class="list-group list-group-flush">
+                            {% for expense in expenses %}
+                            <div class="list-group-item expense-item px-0 py-3 {% if forloop.counter > 5 %}d-none{% endif %}" data-index="{{ forloop.counter }}">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="category-badge bg-primary bg-opacity-10 text-primary me-2">
+                                                {{ expense.get_category_display }}
+                                            </span>
+                                            <small class="text-muted">
+                                                <i class="bi bi-calendar-event"></i> {{ expense.date|date:"M d, Y" }}
+                                            </small>
+                                        </div>
+                                        {% if expense.note %}
+                                        <p class="mb-0 text-muted small">
+                                            <i class="bi bi-chat-left-text"></i> {{ expense.note }}
+                                        </p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-end ms-3">
+                                        <h5 class="mb-0 fw-bold text-danger">-Rs {{ expense.amount }}</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <h5>No Expenses Yet</h5>
+                            <p class="mb-0">Start tracking your expenses by adding your first transaction.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Expense Breakdown Chart -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">
+                            <i class="bi bi-pie-chart text-primary"></i> Expense Breakdown
+                        </h5>
+                        <canvas id="expenseChart" style="max-height: 350px;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let showingAll = false;
+        
+        function toggleTransactions() {
+            const items = document.querySelectorAll('.expense-item');
+            const btn = document.getElementById('toggleBtn');
+            
+            if (showingAll) {
+                // Hide items after 5
+                items.forEach((item, index) => {
+                    if (index >= 5) {
+                        item.classList.add('d-none');
+                    }
+                });
+                btn.innerHTML = '<i class="bi bi-eye"></i> View All (' + items.length + ')';
+                showingAll = false;
+            } else {
+                // Show all items
+                items.forEach(item => {
+                    item.classList.remove('d-none');
+                });
+                btn.innerHTML = '<i class="bi bi-eye-slash"></i> Show Less';
+                showingAll = true;
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('expenseChart');
+            const commuteTotal = parseFloat('{{ commute_total|default:0 }}');
+            const lunchTotal = parseFloat('{{ lunch_total|default:0 }}');
+            const otherTotal = parseFloat('{{ other_total|default:0 }}');
+            
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Commute', 'Lunch', 'Other'],
+                    datasets: [{
+                        data: [commuteTotal, lunchTotal, otherTotal],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(245, 158, 11, 0.8)',
+                            'rgba(139, 92, 246, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgb(16, 185, 129)',
+                            'rgb(245, 158, 11)',
+                            'rgb(139, 92, 246)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: {
+                                    size: 13
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': Rs ' + context.parsed;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
